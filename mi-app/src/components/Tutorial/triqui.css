@@ -1,0 +1,393 @@
+/* ===== Contenedor y tokens locales ===== */
+.game {
+  --x-color: var(--accent);
+  --o-color: #0891b2;
+  --radius: 16px;
+
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  padding: 32px 20px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .game {
+    --o-color: #22d3ee;
+  }
+}
+
+/* ===== Encabezado ===== */
+.game-header {
+  text-align: center;
+}
+
+.game-title {
+  margin: 0;
+  font-size: 48px;
+  letter-spacing: -1.4px;
+  background: linear-gradient(90deg, var(--x-color), var(--o-color));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.game-subtitle {
+  margin-top: 4px;
+  font-size: 15px;
+}
+
+/* ===== Marcador ===== */
+.scoreboard {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(88px, 1fr));
+  gap: 12px;
+  width: 100%;
+  max-width: 420px;
+}
+
+.score-card {
+  --tone: var(--text);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 8px;
+  border: 2px solid var(--border);
+  border-radius: 14px;
+  background: var(--social-bg);
+  transition: border-color 0.25s, box-shadow 0.25s, transform 0.25s;
+}
+
+.score-card--x { --tone: var(--x-color); }
+.score-card--o { --tone: var(--o-color); }
+
+.score-card--active {
+  border-color: var(--tone);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--tone) 18%, transparent);
+  transform: translateY(-2px);
+}
+
+.score-card__label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.score-card__value {
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--tone);
+  animation: score-bump 0.35s ease;
+}
+
+/* ===== Estado / banner del resultado ===== */
+.status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 24px;
+  padding: 8px 22px;
+  border: 2px solid var(--border);
+  border-radius: 999px;
+  background: var(--social-bg);
+  color: var(--text-h);
+  font-weight: 600;
+}
+
+.mark { font-weight: 800; }
+.mark--x { color: var(--x-color); }
+.mark--o { color: var(--o-color); }
+
+.status--over {
+  padding: 10px 30px;
+  font-size: 1.3rem;
+  animation: banner-in 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.status--x {
+  border-color: var(--x-color);
+  background: color-mix(in srgb, var(--x-color) 14%, transparent);
+}
+
+.status--o {
+  border-color: var(--o-color);
+  background: color-mix(in srgb, var(--o-color) 14%, transparent);
+}
+
+.status--draw {
+  border-color: var(--text);
+}
+
+/* ===== Layout principal ===== */
+.game-main {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 32px;
+}
+
+.game-board {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+/* ===== Tablero ===== */
+.board {
+  --size: clamp(84px, 24vw, 120px);
+  display: grid;
+  grid-template-columns: repeat(3, var(--size));
+  grid-template-rows: repeat(3, var(--size));
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) + 8px);
+  background: var(--social-bg);
+  box-shadow: var(--shadow);
+}
+
+.square {
+  position: relative;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--code-bg);
+  font-family: var(--heading);
+  font-size: calc(var(--size) * 0.5);
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.2s, background 0.2s,
+    box-shadow 0.2s, opacity 0.3s;
+}
+
+.square:disabled {
+  cursor: default;
+}
+
+.square:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* El color se repite en :disabled porque el navegador pinta gris los botones deshabilitados */
+.square--x,
+.square--x:disabled { color: var(--x-color); }
+.square--o,
+.square--o:disabled { color: var(--o-color); }
+
+.square-mark {
+  display: block;
+  animation: mark-pop 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Vista previa fantasma de la ficha que se va a poner */
+.square:empty:not(:disabled):hover {
+  transform: translateY(-2px);
+  border-color: var(--accent-border);
+}
+
+.square:empty:not(:disabled):hover::before {
+  opacity: 0.28;
+}
+
+.square[data-next='X']:empty:not(:disabled):hover::before {
+  content: 'X';
+  color: var(--x-color);
+}
+
+.square[data-next='O']:empty:not(:disabled):hover::before {
+  content: 'O';
+  color: var(--o-color);
+}
+
+/* Casillas ganadoras */
+.board--won .square:not(.square--winning) {
+  opacity: 0.4;
+}
+
+.square--winning {
+  border-color: currentColor;
+  background: color-mix(in srgb, currentColor 14%, var(--bg));
+  box-shadow: 0 0 0 4px color-mix(in srgb, currentColor 22%, transparent),
+    0 0 28px color-mix(in srgb, currentColor 45%, transparent);
+  animation: win-pulse 0.8s ease-in-out infinite alternate;
+}
+
+/* ===== Botones ===== */
+.game-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+.btn {
+  padding: 10px 18px;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-h);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s, transform 0.15s;
+}
+
+.btn:hover {
+  border-color: var(--accent-border);
+  background: var(--accent-bg);
+}
+
+.btn:focus-visible,
+.history-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.btn--primary {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+
+.btn--primary:hover {
+  background: var(--accent);
+  transform: translateY(-1px);
+}
+
+.btn--attention {
+  animation: attention 1.2s ease-in-out infinite;
+}
+
+/* ===== Historial ===== */
+.game-info {
+  width: 240px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--social-bg);
+  text-align: left;
+}
+
+.game-info__title {
+  margin: 0 0 12px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.game-info ol {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 340px;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.history-btn {
+  width: 100%;
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-h);
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.history-btn:hover {
+  background: var(--accent-bg);
+  border-color: var(--accent-border);
+}
+
+.history-btn--current {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+  font-weight: 600;
+}
+
+/* ===== Confeti ===== */
+.confetti {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.confetti-piece {
+  position: absolute;
+  top: -20px;
+  left: var(--left);
+  width: 10px;
+  height: 16px;
+  border-radius: 2px;
+  background: var(--color);
+  opacity: 0;
+  animation: confetti-fall var(--duration) var(--delay) ease-in forwards;
+}
+
+/* ===== Animaciones ===== */
+@keyframes mark-pop {
+  from { transform: scale(0.2) rotate(-20deg); opacity: 0; }
+  to   { transform: scale(1) rotate(0); opacity: 1; }
+}
+
+@keyframes win-pulse {
+  from { transform: scale(1); }
+  to   { transform: scale(1.06); }
+}
+
+@keyframes banner-in {
+  from { transform: scale(0.6) translateY(-8px); opacity: 0; }
+  to   { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+@keyframes score-bump {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.35); }
+  100% { transform: scale(1); }
+}
+
+@keyframes attention {
+  0%, 100% { box-shadow: 0 0 0 0 var(--accent-border); }
+  50%      { box-shadow: 0 0 0 8px transparent; }
+}
+
+@keyframes confetti-fall {
+  0%   { transform: translate3d(0, 0, 0) rotate(0); opacity: 1; }
+  80%  { opacity: 1; }
+  100% { transform: translate3d(var(--drift), 105vh, 0) rotate(var(--spin)); opacity: 0; }
+}
+
+/* ===== Responsive y accesibilidad ===== */
+@media (max-width: 720px) {
+  .game-title { font-size: 36px; }
+  .game-info { width: 100%; max-width: 380px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .confetti { display: none; }
+  .game *,
+  .game *::before {
+    animation: none !important;
+    transition: none !important;
+  }
+}
